@@ -140,16 +140,17 @@ export default function MealPlanner(): JSX.Element {
   }
 
   return (
-    <Box maxW="800px" mx="auto" p={8}>
-      <Heading mb={6}>Create Your Meal Plan</Heading>
+    <Box maxW="800px" mx="auto" p={{ base: 4, md: 8 }}>
+      <Heading mb={6} fontSize={{ base: "xl", md: "2xl" }}>Create Your Meal Plan</Heading>
       <form onSubmit={handleSubmit}>
-        <VStack spacing={6} align="stretch">
+        <VStack spacing={{ base: 4, md: 6 }} align="stretch">
           <FormControl>
-            <FormLabel>Age</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Age</FormLabel>
             <NumberInput
               min={18}
               max={100}
               value={formData.age}
+              size={{ base: "sm", md: "md" }}
               onChange={(valueString) => {
                 const value = parseInt(valueString)
                 if (!isNaN(value)) {
@@ -165,10 +166,11 @@ export default function MealPlanner(): JSX.Element {
           </FormControl>
 
           <FormControl isRequired>
-            <FormLabel>Gender</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Gender</FormLabel>
             <Select
               placeholder="Select gender"
               value={formData.gender}
+              size={{ base: "sm", md: "md" }}
               onChange={(e) => setFormData({ ...formData, gender: e.target.value })}>
               <option value="male">Male</option>
               <option value="female">Female</option>
@@ -176,11 +178,12 @@ export default function MealPlanner(): JSX.Element {
           </FormControl>
 
           <FormControl>
-            <FormLabel>Weight (lbs)</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Weight (lbs)</FormLabel>
             <NumberInput
               min={80}
               max={400}
               value={formData.weight}
+              size={{ base: "sm", md: "md" }}
               onChange={(valueString) => {
                 const value = parseInt(valueString)
                 if (!isNaN(value)) {
@@ -196,11 +199,12 @@ export default function MealPlanner(): JSX.Element {
           </FormControl>
 
           <FormControl>
-            <FormLabel>Height (inches)</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Height (inches)</FormLabel>
             <NumberInput
               min={48}
               max={96}
               value={formData.height}
+              size={{ base: "sm", md: "md" }}
               onChange={(valueString) => {
                 const value = parseInt(valueString)
                 if (!isNaN(value)) {
@@ -219,10 +223,11 @@ export default function MealPlanner(): JSX.Element {
           </FormControl>
 
           <FormControl isRequired>
-            <FormLabel>Activity Level</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Activity Level</FormLabel>
             <Select
               placeholder="Select activity level"
               value={formData.activity_level}
+              size={{ base: "sm", md: "md" }}
               onChange={(e) => setFormData({ ...formData, activity_level: e.target.value })}>
               <option value="sedentary">Sedentary (little or no exercise)</option>
               <option value="lightly_active">Lightly Active (1-3 days/week)</option>
@@ -233,10 +238,11 @@ export default function MealPlanner(): JSX.Element {
           </FormControl>
 
           <FormControl isRequired>
-            <FormLabel>Goal</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Goal</FormLabel>
             <Select
               placeholder="Select goal"
               value={formData.goal}
+              size={{ base: "sm", md: "md" }}
               onChange={(e) => setFormData({ ...formData, goal: e.target.value })}>
               <option value="weight_loss">Weight Loss</option>
               <option value="weight_gain">Weight Gain</option>
@@ -245,7 +251,7 @@ export default function MealPlanner(): JSX.Element {
           </FormControl>
 
           <FormControl>
-            <FormLabel>Dietary Preferences</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Dietary Preferences</FormLabel>
             <Stack spacing={2}>
               <Checkbox 
                 onChange={(e) => handleDietaryRestrictionChange('pescatarian', e.target.checked)}
@@ -298,15 +304,23 @@ export default function MealPlanner(): JSX.Element {
             colorScheme="green"
             type="submit"
             isLoading={loading}
-            loadingText="Generating">
+            loadingText="Generating"
+            size={{ base: "md", md: "lg" }}
+            w="full">
             Generate Meal Plan
           </Button>
         </VStack>
       </form>
 
       {calculations && (
-        <Box mt={8} p={4} borderWidth={1} borderRadius="lg" bg={calculationsBg}>
-          <Heading size="sm" mb={2}>Calculations</Heading>
+        <Box 
+          mt={{ base: 6, md: 8 }} 
+          p={{ base: 3, md: 4 }} 
+          borderWidth={1} 
+          borderRadius="lg" 
+          bg={calculationsBg}
+          fontSize={{ base: "sm", md: "md" }}>
+          <Heading size={{ base: "sm", md: "md" }} mb={2}>Calculations</Heading>
           <Text color={calculationsTextColor}>BMR: {Math.round(calculations.bmr)} calories/day</Text>
           <Text color={calculationsTextColor}>TDEE: {Math.round(calculations.tdee)} calories/day</Text>
           <Text color={calculationsTextColor}>Target: {Math.round(calculations.target_calories)} calories/day</Text>
@@ -314,25 +328,31 @@ export default function MealPlanner(): JSX.Element {
       )}
 
       {mealPlan && (
-        <Box mt={8} p={6} borderWidth={1} borderRadius="lg" bg={mealPlanBg}>
-          <Heading size="md" mb={4}>
+        <Box 
+          mt={{ base: 6, md: 8 }} 
+          p={{ base: 4, md: 6 }} 
+          borderWidth={1} 
+          borderRadius="lg" 
+          bg={mealPlanBg}>
+          <Heading size={{ base: "md", md: "lg" }} mb={4}>
             Your Personalized Meal Plan
           </Heading>
           <Box 
             className="workout-plan" 
-            p={4} 
+            p={{ base: 3, md: 4 }} 
             color={mealPlanTextColor}
+            fontSize={{ base: "sm", md: "md" }}
             sx={{
               '& h2': {
                 color: h2Color,
-                fontSize: 'xl',
+                fontSize: { base: 'lg', md: 'xl' },
                 fontWeight: 'bold',
                 mt: 4,
                 mb: 2
               },
               '& h3': {
                 color: h3Color,
-                fontSize: 'lg',
+                fontSize: { base: 'md', md: 'lg' },
                 fontWeight: 'semibold',
                 mt: 3,
                 mb: 2

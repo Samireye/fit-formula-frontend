@@ -50,6 +50,8 @@ interface WorkoutPlanResponse {
   }[]
 }
 
+const equipmentOptions = ['dumbbells', 'barbell', 'resistance_bands', 'bodyweight_only', 'gym_machines']
+
 export default function WorkoutPlanner(): JSX.Element {
   const toast = useToast()
   const [loading, setLoading] = useState<boolean>(false)
@@ -148,7 +150,7 @@ export default function WorkoutPlanner(): JSX.Element {
     }
   }
 
-  const handleCheckboxChange = (equipment: string, isChecked: boolean) => {
+  const handleEquipmentChange = (equipment: string, isChecked: boolean) => {
     setFormData(prev => {
       if (isChecked) {
         return {
@@ -165,18 +167,17 @@ export default function WorkoutPlanner(): JSX.Element {
   }
 
   return (
-    <Box maxW="800px" mx="auto" p={8}>
-      <Heading mb={6}>Create Your Workout Plan</Heading>
+    <Box maxW="800px" mx="auto" p={{ base: 4, md: 8 }}>
+      <Heading mb={6} fontSize={{ base: "xl", md: "2xl" }}>Create Your Workout Plan</Heading>
       <form onSubmit={handleSubmit}>
-        <VStack spacing={6} align="stretch">
-          <FormControl>
-            <FormLabel>Fitness Level</FormLabel>
+        <VStack spacing={{ base: 4, md: 6 }} align="stretch">
+          <FormControl isRequired>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Fitness Level</FormLabel>
             <Select
               placeholder="Select fitness level"
               value={formData.fitness_level}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setFormData({ ...formData, fitness_level: e.target.value })
-              }>
+              size={{ base: "sm", md: "md" }}
+              onChange={(e) => setFormData({ ...formData, fitness_level: e.target.value })}>
               <option value="beginner">Beginner</option>
               <option value="intermediate">Intermediate</option>
               <option value="advanced">Advanced</option>
@@ -184,64 +185,49 @@ export default function WorkoutPlanner(): JSX.Element {
           </FormControl>
 
           <FormControl>
-            <FormLabel>Available Equipment (Select at least one)</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Available Equipment</FormLabel>
             <Stack spacing={2}>
-              <Checkbox 
-                onChange={(e) => handleCheckboxChange('dumbbells', e.target.checked)}
-                isChecked={formData.available_equipment.includes('dumbbells')}
-              >
-                Dumbbells
-              </Checkbox>
-              <Checkbox 
-                onChange={(e) => handleCheckboxChange('barbell', e.target.checked)}
-                isChecked={formData.available_equipment.includes('barbell')}
-              >
-                Barbell
-              </Checkbox>
-              <Checkbox 
-                onChange={(e) => handleCheckboxChange('resistance_bands', e.target.checked)}
-                isChecked={formData.available_equipment.includes('resistance_bands')}
-              >
-                Resistance Bands
-              </Checkbox>
-              <Checkbox 
-                onChange={(e) => handleCheckboxChange('bodyweight_only', e.target.checked)}
-                isChecked={formData.available_equipment.includes('bodyweight_only')}
-              >
-                Bodyweight Only
-              </Checkbox>
-              <Checkbox 
-                onChange={(e) => handleCheckboxChange('gym_machines', e.target.checked)}
-                isChecked={formData.available_equipment.includes('gym_machines')}
-              >
-                Gym Machines
-              </Checkbox>
+              {equipmentOptions.map((equipment) => (
+                <Checkbox
+                  key={equipment}
+                  isChecked={formData.available_equipment.includes(equipment)}
+                  onChange={(e) => handleEquipmentChange(equipment, e.target.checked)}
+                  size={{ base: "sm", md: "md" }}>
+                  {equipment}
+                </Checkbox>
+              ))}
             </Stack>
           </FormControl>
 
-          <FormControl>
-            <FormLabel>Goals</FormLabel>
+          <FormControl isRequired>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Goals</FormLabel>
             <Select
-              placeholder="Select primary goal"
+              placeholder="Select your goal"
               value={formData.goals}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => 
-                setFormData({ ...formData, goals: e.target.value })
-              }>
+              size={{ base: "sm", md: "md" }}
+              onChange={(e) => setFormData({ ...formData, goals: e.target.value })}>
               <option value="strength">Build Strength</option>
               <option value="muscle">Build Muscle</option>
-              <option value="weight_loss">Weight Loss</option>
               <option value="endurance">Improve Endurance</option>
-              <option value="flexibility">Increase Flexibility</option>
+              <option value="weight_loss">Weight Loss</option>
+              <option value="general_fitness">General Fitness</option>
             </Select>
           </FormControl>
 
-          <FormControl>
-            <FormLabel>Time per Session (minutes)</FormLabel>
+          <FormControl isRequired>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Time per Session (minutes)</FormLabel>
             <NumberInput
               min={15}
               max={120}
+              step={15}
               value={formData.time_per_session}
-              onChange={(valueString) => handleNumberInputChange('time_per_session', valueString)}>
+              size={{ base: "sm", md: "md" }}
+              onChange={(valueString) => {
+                const value = parseInt(valueString)
+                if (!isNaN(value)) {
+                  setFormData(prev => ({ ...prev, time_per_session: value }))
+                }
+              }}>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -250,13 +236,19 @@ export default function WorkoutPlanner(): JSX.Element {
             </NumberInput>
           </FormControl>
 
-          <FormControl>
-            <FormLabel>Sessions per Week</FormLabel>
+          <FormControl isRequired>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Sessions per Week</FormLabel>
             <NumberInput
               min={1}
               max={7}
               value={formData.sessions_per_week}
-              onChange={(valueString) => handleNumberInputChange('sessions_per_week', valueString)}>
+              size={{ base: "sm", md: "md" }}
+              onChange={(valueString) => {
+                const value = parseInt(valueString)
+                if (!isNaN(value)) {
+                  setFormData(prev => ({ ...prev, sessions_per_week: value }))
+                }
+              }}>
               <NumberInputField />
               <NumberInputStepper>
                 <NumberIncrementStepper />
@@ -265,38 +257,52 @@ export default function WorkoutPlanner(): JSX.Element {
             </NumberInput>
           </FormControl>
 
+          <FormControl>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Medical Conditions (Optional)</FormLabel>
+            <Textarea
+              value={formData.medical_conditions || ''}
+              size={{ base: "sm", md: "md" }}
+              onChange={(e) => setFormData({ ...formData, medical_conditions: e.target.value })}
+              placeholder="List any medical conditions that might affect your workout"
+            />
+          </FormControl>
+
           <Button
-            colorScheme="green"
+            colorScheme="blue"
             type="submit"
             isLoading={loading}
-            loadingText="Generating">
+            loadingText="Generating"
+            size={{ base: "md", md: "lg" }}
+            w="full">
             Generate Workout Plan
           </Button>
         </VStack>
       </form>
 
       {workoutPlan && (
-        <Box mt={8} p={6} borderWidth={1} borderRadius="lg" bg={bgColor}>
+        <Box 
+          mt={{ base: 6, md: 8 }} 
+          p={{ base: 4, md: 6 }} 
+          borderWidth={1} 
+          borderRadius="lg" 
+          bg={useColorModeValue('white', 'gray.700')}>
+          <Heading size={{ base: "md", md: "lg" }} mb={4}>
+            Your Personalized Workout Plan
+          </Heading>
           <Box 
-            className="workout-plan" 
-            color={textColor}
+            className="workout-plan"
+            fontSize={{ base: "sm", md: "md" }}
             sx={{
-              '& h1': {
-                color: headingColor,
-                fontSize: '2xl',
-                fontWeight: 'bold',
-                mb: 4
-              },
               '& h2': {
-                color: headingColor,
-                fontSize: 'xl',
+                color: useColorModeValue('blue.600', 'blue.200'),
+                fontSize: { base: 'lg', md: 'xl' },
                 fontWeight: 'bold',
                 mt: 4,
                 mb: 2
               },
               '& h3': {
-                color: subheadingColor,
-                fontSize: 'lg',
+                color: useColorModeValue('gray.700', 'gray.300'),
+                fontSize: { base: 'md', md: 'lg' },
                 fontWeight: 'semibold',
                 mt: 3,
                 mb: 2
@@ -310,14 +316,9 @@ export default function WorkoutPlanner(): JSX.Element {
                 mb: 2
               },
               '& strong': {
-                color: strongTextColor,
-                fontWeight: 'bold'
-              },
-              '& p': {
-                mb: 2
+                color: useColorModeValue('gray.700', 'gray.200')
               }
-            }}
-          >
+            }}>
             <ReactMarkdown>{workoutPlan}</ReactMarkdown>
           </Box>
         </Box>
