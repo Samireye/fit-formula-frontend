@@ -106,7 +106,12 @@ export default function WorkoutPlanner(): JSX.Element {
     try {
       const response = await axios.post<WorkoutPlanResponse>(
         `${import.meta.env.VITE_API_URL}/workout`,
-        formData
+        formData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
       )
       
       setWorkoutPlan(response.data.workout_plan)
