@@ -245,17 +245,31 @@ export default function MealPlanner(): JSX.Element {
           </FormControl>
 
           <FormControl>
-            <FormLabel>Dietary Restrictions</FormLabel>
+            <FormLabel>Dietary Preferences</FormLabel>
             <Stack spacing={2}>
+              <Checkbox 
+                onChange={(e) => handleDietaryRestrictionChange('pescatarian', e.target.checked)}
+                isChecked={formData.dietary_restrictions.includes('pescatarian')}
+              >
+                Pescatarian (Fish + Plant-Based)
+              </Checkbox>
+              <Checkbox 
+                onChange={(e) => handleDietaryRestrictionChange('carnivore', e.target.checked)}
+                isChecked={formData.dietary_restrictions.includes('carnivore')}
+              >
+                Carnivore (Meat-Based)
+              </Checkbox>
               <Checkbox 
                 onChange={(e) => handleDietaryRestrictionChange('vegetarian', e.target.checked)}
                 isChecked={formData.dietary_restrictions.includes('vegetarian')}
+                isDisabled={formData.dietary_restrictions.includes('carnivore')}
               >
                 Vegetarian
               </Checkbox>
               <Checkbox 
                 onChange={(e) => handleDietaryRestrictionChange('vegan', e.target.checked)}
                 isChecked={formData.dietary_restrictions.includes('vegan')}
+                isDisabled={formData.dietary_restrictions.includes('carnivore') || formData.dietary_restrictions.includes('pescatarian')}
               >
                 Vegan
               </Checkbox>
