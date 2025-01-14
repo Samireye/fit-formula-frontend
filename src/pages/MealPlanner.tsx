@@ -302,22 +302,75 @@ export default function MealPlanner() {
       </form>
 
       {mealPlan && calculations && (
-        <Box mt={8} p={6} borderWidth={1} borderRadius="lg" bg={useColorModeValue('white', 'gray.700')}>
-          <VStack spacing={4} align="stretch">
-            <Box>
-              <Heading size="md" mb={2}>Daily Caloric Needs</Heading>
-              <Text>BMR (Basal Metabolic Rate): {calculations.bmr} calories</Text>
-              <Text>TDEE (Total Daily Energy Expenditure): {calculations.tdee} calories</Text>
-              <Text>Target Daily Calories: {calculations.target_calories} calories</Text>
+        <Box mt={8}>
+          {/* Calculations Box */}
+          <Box 
+            p={6} 
+            mb={6} 
+            borderWidth={1} 
+            borderRadius="lg" 
+            bg={useColorModeValue('blue.50', 'blue.900')}
+          >
+            <Heading size="md" mb={4} color={useColorModeValue('blue.600', 'blue.200')}>
+              Daily Caloric Needs
+            </Heading>
+            <Text color={useColorModeValue('gray.700', 'gray.200')} mb={2}>
+              <strong>BMR (Basal Metabolic Rate):</strong> {Math.round(calculations.bmr)} calories/day
+            </Text>
+            <Text color={useColorModeValue('gray.700', 'gray.200')} mb={2}>
+              <strong>TDEE (Total Daily Energy Expenditure):</strong> {Math.round(calculations.tdee)} calories/day
+            </Text>
+            <Text color={useColorModeValue('gray.700', 'gray.200')}>
+              <strong>Target Daily Calories:</strong> {Math.round(calculations.target_calories)} calories/day
+            </Text>
+          </Box>
+
+          {/* Meal Plan Box */}
+          <Box 
+            p={6} 
+            borderWidth={1} 
+            borderRadius="lg" 
+            bg={useColorModeValue('white', 'gray.700')}
+          >
+            <Heading size="md" mb={4} color={useColorModeValue('gray.700', 'gray.200')}>
+              Your Personalized Meal Plan
+            </Heading>
+            <Box 
+              className="meal-plan"
+              sx={{
+                '& h2': {
+                  color: useColorModeValue('blue.600', 'blue.200'),
+                  fontSize: 'xl',
+                  fontWeight: 'bold',
+                  mt: 4,
+                  mb: 2
+                },
+                '& h3': {
+                  color: useColorModeValue('gray.700', 'gray.300'),
+                  fontSize: 'lg',
+                  fontWeight: 'semibold',
+                  mt: 3,
+                  mb: 2
+                },
+                '& ul': {
+                  listStyle: 'disc',
+                  pl: 4,
+                  mb: 3
+                },
+                '& li': {
+                  mb: 2
+                },
+                '& strong': {
+                  color: useColorModeValue('gray.700', 'gray.200')
+                },
+                '& p': {
+                  mb: 3
+                }
+              }}
+            >
+              <ReactMarkdown>{mealPlan}</ReactMarkdown>
             </Box>
-            
-            <Box>
-              <Heading size="md" mb={4}>Your Personalized Meal Plan</Heading>
-              <Box className="meal-plan">
-                <ReactMarkdown>{mealPlan}</ReactMarkdown>
-              </Box>
-            </Box>
-          </VStack>
+          </Box>
         </Box>
       )}
     </Box>
