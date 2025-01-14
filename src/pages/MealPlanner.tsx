@@ -21,6 +21,7 @@ import {
 } from '@chakra-ui/react'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
+import config from '../config'
 
 interface FormData {
   age: number
@@ -47,6 +48,8 @@ export default function MealPlanner() {
   const [mealPlan, setMealPlan] = useState('')
   const [calculations, setCalculations] = useState<MealPlanResponse['calculations'] | null>(null)
 
+  console.log('API URL:', config.apiUrl)
+
   const [formData, setFormData] = useState<FormData>({
     age: 30,
     gender: '',
@@ -63,7 +66,7 @@ export default function MealPlanner() {
 
     try {
       const response = await axios.post<MealPlanResponse>(
-        `${import.meta.env.VITE_API_URL}/api/meal-plan`,
+        `${config.apiUrl}/api/meal-plan`,
         formData
       )
 
