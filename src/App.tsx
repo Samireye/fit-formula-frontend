@@ -1,11 +1,11 @@
 import { ChakraProvider } from '@chakra-ui/react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import theme from './theme'
 import Layout from './components/Layout'
-import Home from './pages/Home'
 import WorkoutPlanner from './pages/WorkoutPlanner'
 import MealPlanner from './pages/MealPlanner'
+import Home from './pages/Home'
 import Pricing from './pages/Pricing'
+import theme from './theme'
 import './styles/animations.css'
 
 function App() {
@@ -15,8 +15,8 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/workout" element={<WorkoutPlanner />} />
-            <Route path="/meal" element={<MealPlanner />} />
+            <Route path="/workout-planner" element={<WorkoutPlanner />} />
+            <Route path="/meal-planner" element={<MealPlanner />} />
             <Route path="/pricing" element={<Pricing />} />
           </Routes>
         </Layout>

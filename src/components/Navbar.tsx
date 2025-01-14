@@ -62,8 +62,7 @@ export default function Navbar() {
             to="/workout-planner"
             fontSize={'sm'}
             fontWeight={400}
-            variant={'link'}
-            href={'#'}>
+            variant={'link'}>
             Workout Planner
           </Button>
           <Button
