@@ -63,7 +63,7 @@ export default function MealPlanner() {
 
     try {
       const response = await axios.post<MealPlanResponse>(
-        `${import.meta.env.VITE_API_URL}/api/generate-meal-plan`,
+        `${import.meta.env.VITE_API_URL}/api/meal-plan`,
         formData
       )
 
