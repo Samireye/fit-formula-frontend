@@ -1,111 +1,133 @@
 import {
   Box,
-  Flex,
-  Text,
   Button,
-  Stack,
-  useColorModeValue,
+  Flex,
+  HStack,
   IconButton,
+  Link,
+  useColorMode,
+  useColorModeValue,
   useDisclosure,
-  Collapse,
   VStack,
+  CloseButton,
+  useBreakpointValue
 } from '@chakra-ui/react'
-import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons'
 import { Link as RouterLink } from 'react-router-dom'
+import { HamburgerIcon, MoonIcon, SunIcon } from '@chakra-ui/icons'
 
 export default function Navbar() {
-  const { isOpen, onToggle } = useDisclosure()
+  const { colorMode, toggleColorMode } = useColorMode()
+  const { isOpen, onToggle, onClose } = useDisclosure()
+  const isMobile = useBreakpointValue({ base: true, md: false })
+
+  const bg = useColorModeValue('white', 'gray.800')
+  const borderColor = useColorModeValue('gray.200', 'gray.700')
 
   return (
-    <Box>
-      <Flex
-        bg={useColorModeValue('white', 'gray.800')}
-        color={useColorModeValue('gray.600', 'white')}
-        minH={'60px'}
-        py={{ base: 2 }}
-        px={{ base: 4 }}
-        borderBottom={1}
-        borderStyle={'solid'}
-        borderColor={useColorModeValue('gray.200', 'gray.900')}
-        align={'center'}>
-        <Flex flex={{ base: 1 }} justify={{ base: 'start', md: 'start' }}>
-          <Text
-            as={RouterLink}
-            to="/"
-            textAlign={{ base: 'left', md: 'left' }}
-            fontFamily={'heading'}
-            color={useColorModeValue('gray.800', 'white')}
-            fontWeight="bold"
-            fontSize="xl">
-            FitFormula.AI
-          </Text>
-        </Flex>
+    <Box 
+      position="sticky" 
+      top={0} 
+      zIndex={1000} 
+      bg={bg} 
+      borderBottom="1px" 
+      borderColor={borderColor}
+      px={{ base: 4, md: 8 }}
+      py={4}
+    >
+      <Flex alignItems="center" justifyContent="space-between">
+        <Link
+          as={RouterLink}
+          to="/"
+          fontSize="xl"
+          fontWeight="bold"
+          _hover={{ textDecoration: 'none' }}
+        >
+          FitFormula.AI
+        </Link>
 
-        {/* Mobile hamburger button */}
-        <IconButton
-          display={{ base: 'flex', md: 'none' }}
-          onClick={onToggle}
-          icon={isOpen ? <CloseIcon w={3} h={3} /> : <HamburgerIcon w={5} h={5} />}
-          variant={'ghost'}
-          aria-label={'Toggle Navigation'}
-        />
+        {/* Mobile Menu Button */}
+        {isMobile && (
+          <Flex alignItems="center">
+            <IconButton
+              onClick={toggleColorMode}
+              icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
+              variant="ghost"
+              aria-label="Toggle color mode"
+              mr={2}
+            />
+            <IconButton
+              onClick={onToggle}
+              icon={<HamburgerIcon />}
+              variant="ghost"
+              aria-label="Toggle navigation"
+            />
+          </Flex>
+        )}
 
-        {/* Desktop navigation */}
-        <Stack
-          flex={{ base: 1, md: 0 }}
-          justify={'flex-end'}
-          direction={'row'}
-          spacing={6}
-          display={{ base: 'none', md: 'flex' }}>
-          <Button
-            as={RouterLink}
-            to="/workout-planner"
-            fontSize={'sm'}
-            fontWeight={400}
-            variant={'link'}>
-            Workout Planner
-          </Button>
-          <Button
-            as={RouterLink}
-            to="/meal-planner"
-            fontSize={'sm'}
-            fontWeight={600}
-            color={'white'}
-            bg={'green.400'}
-            _hover={{
-              bg: 'green.500',
-            }}>
-            Meal Planner
-          </Button>
-        </Stack>
+        {/* Desktop Navigation */}
+        {!isMobile && (
+          <HStack spacing={4}>
+            <IconButton
+              onClick={toggleColorMode}
+              icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
+              variant="ghost"
+              aria-label="Toggle color mode"
+            />
+            <Button
+              as={RouterLink}
+              to="/workout-planner"
+              variant="ghost"
+              colorScheme="blue"
+            >
+              Workout Planner
+            </Button>
+            <Button
+              as={RouterLink}
+              to="/meal-planner"
+              colorScheme="green"
+            >
+              Meal Planner
+            </Button>
+          </HStack>
+        )}
       </Flex>
 
-      {/* Mobile navigation */}
-      <Collapse in={isOpen} animateOpacity>
-        <VStack
+      {/* Mobile Menu */}
+      {isMobile && isOpen && (
+        <Box
+          position="fixed"
+          top={0}
+          right={0}
+          bottom={0}
+          width="full"
+          bg={bg}
+          zIndex={20}
           p={4}
-          display={{ md: 'none' }}
-          bg={useColorModeValue('white', 'gray.800')}
-          spacing={4}
-          borderBottom={1}
-          borderStyle={'solid'}
-          borderColor={useColorModeValue('gray.200', 'gray.900')}>
-          <Button
-            as={RouterLink}
-            to="/workout-planner"
-            w="full"
-            variant={'ghost'}>
-            Workout Planner
-          </Button>
-          <Button
-            as={RouterLink}
-            to="/meal-planner"
-            w="full"
-            colorScheme="green">
-            Meal Planner
-          </Button>
-        </VStack>
-      </Collapse>
+        >
+          <Flex justify="flex-end" mb={8}>
+            <CloseButton onClick={onClose} />
+          </Flex>
+          <VStack spacing={4} alignItems="stretch">
+            <Button
+              as={RouterLink}
+              to="/workout-planner"
+              variant="ghost"
+              colorScheme="blue"
+              onClick={onClose}
+            >
+              Workout Planner
+            </Button>
+            <Button
+              as={RouterLink}
+              to="/meal-planner"
+              colorScheme="green"
+              onClick={onClose}
+            >
+              Meal Planner
+            </Button>
+          </VStack>
+        </Box>
+      )}
     </Box>
   )
 }
