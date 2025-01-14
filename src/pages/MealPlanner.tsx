@@ -95,7 +95,7 @@ export default function MealPlanner(): JSX.Element {
 
     try {
       const response = await axios.post<MealPlanResponse>(
-        'http://localhost:8003/api/generate-meal-plan',
+        `${import.meta.env.VITE_API_URL}/generate-meal-plan`,
         formData
       )
       
