@@ -172,8 +172,8 @@ export default function WorkoutPlanner(): JSX.Element {
       <Heading mb={6} textAlign={{ base: "center", md: "left" }}>Create Your Workout Plan</Heading>
       <form onSubmit={handleSubmit}>
         <VStack spacing={6} align="stretch">
-          <FormControl isRequired>
-            <FormLabel>Fitness Level</FormLabel>
+          <FormControl>
+            <FormLabel>Fitness Level <span style={{ color: 'red' }}>*</span></FormLabel>
             <Select
               placeholder="Select fitness level"
               value={formData.fitness_level}
@@ -187,8 +187,8 @@ export default function WorkoutPlanner(): JSX.Element {
           </FormControl>
 
 
-          <FormControl isRequired>
-            <FormLabel>Available Equipment</FormLabel>
+          <FormControl>
+            <FormLabel>Available Equipment <span style={{ color: 'red' }}>*</span></FormLabel>
             <Stack spacing={2}>
               <Checkbox 
                 onChange={(e) => handleCheckboxChange('dumbbells', e.target.checked)}
@@ -224,8 +224,8 @@ export default function WorkoutPlanner(): JSX.Element {
           </FormControl>
 
 
-          <FormControl isRequired>
-            <FormLabel>Goals</FormLabel>
+          <FormControl>
+            <FormLabel>Goals <span style={{ color: 'red' }}>*</span></FormLabel>
             <Select
               placeholder="Select primary goal"
               value={formData.goals}
