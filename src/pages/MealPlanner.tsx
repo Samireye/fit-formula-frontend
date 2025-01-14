@@ -4,29 +4,29 @@ import {
   Button,
   FormControl,
   FormLabel,
+  Input,
   Select,
   VStack,
   Heading,
   useToast,
-  useColorModeValue,
   NumberInput,
   NumberInputField,
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
-  Stack,
   Checkbox,
+  Stack,
   Text,
+  useColorModeValue,
 } from '@chakra-ui/react'
-import axios, { AxiosError } from 'axios'
+import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
-import '../styles/workout-plan.css'
 
 interface FormData {
   age: number
   gender: string
-  weight: number // in lbs
-  height: number // in inches
+  weight: number
+  height: number
   activity_level: string
   goal: string
   dietary_restrictions: string[]
@@ -41,64 +41,32 @@ interface MealPlanResponse {
   }
 }
 
-export default function MealPlanner(): JSX.Element {
+export default function MealPlanner() {
   const toast = useToast()
-  const [loading, setLoading] = useState<boolean>(false)
-  const [mealPlan, setMealPlan] = useState<string>('')
+  const [loading, setLoading] = useState(false)
+  const [mealPlan, setMealPlan] = useState('')
   const [calculations, setCalculations] = useState<MealPlanResponse['calculations'] | null>(null)
-  
-  // Move all color mode values to the top level
-  const calculationsBg = useColorModeValue('blue.50', 'blue.900')
-  const calculationsTextColor = useColorModeValue('gray.700', 'gray.200')
-  const mealPlanBg = useColorModeValue('white', 'gray.700')
-  const mealPlanTextColor = useColorModeValue('gray.800', 'gray.100')
-  const h2Color = useColorModeValue('blue.600', 'blue.200')
-  const h3Color = useColorModeValue('gray.700', 'gray.300')
-  const strongColor = useColorModeValue('gray.700', 'gray.200')
-  
+
   const [formData, setFormData] = useState<FormData>({
     age: 30,
     gender: '',
     weight: 150,
-    height: 67, // 5'7" in inches
+    height: 70,
     activity_level: '',
     goal: '',
     dietary_restrictions: [],
   })
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    // Validate all required fields
-    const requiredFields = {
-      gender: 'Gender',
-      activity_level: 'Activity Level',
-      goal: 'Goal'
-    }
-
-    const missingFields = Object.entries(requiredFields)
-      .filter(([key]) => !formData[key as keyof typeof requiredFields])
-      .map(([_, label]) => label)
-
-    if (missingFields.length > 0) {
-      toast({
-        title: 'Required Fields Missing',
-        description: `Please fill out: ${missingFields.join(', ')}`,
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      })
-      return
-    }
-
     setLoading(true)
 
     try {
       const response = await axios.post<MealPlanResponse>(
-        'http://localhost:8003/api/generate-meal-plan',
+        `${import.meta.env.VITE_API_URL}/meal-plan`,
         formData
       )
-      
+
       setMealPlan(response.data.meal_plan)
       setCalculations(response.data.calculations)
       toast({
@@ -110,10 +78,9 @@ export default function MealPlanner(): JSX.Element {
       })
     } catch (error) {
       console.error('Error:', error)
-      const axiosError = error as AxiosError<{ detail: string }>
       toast({
         title: 'Error',
-        description: axiosError.response?.data?.detail || 'Failed to generate meal plan. Please try again.',
+        description: 'Failed to generate meal plan. Please try again.',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -125,35 +92,65 @@ export default function MealPlanner(): JSX.Element {
 
   const handleDietaryRestrictionChange = (restriction: string, isChecked: boolean) => {
     setFormData(prev => {
+      const newRestrictions = isChecked
+        ? [...prev.dietary_restrictions, restriction]
+        : prev.dietary_restrictions.filter(r => r !== restriction)
+      
+      // Handle mutually exclusive options
       if (isChecked) {
-        return {
-          ...prev,
-          dietary_restrictions: [...prev.dietary_restrictions, restriction]
+        if (restriction === 'carnivore') {
+          return {
+            ...prev,
+            dietary_restrictions: ['carnivore']
+          }
+        } else if (restriction === 'pescatarian') {
+          return {
+            ...prev,
+            dietary_restrictions: newRestrictions.filter(r => r !== 'carnivore' && r !== 'vegan')
+          }
+        } else if (restriction === 'vegan') {
+          return {
+            ...prev,
+            dietary_restrictions: newRestrictions.filter(r => r !== 'carnivore' && r !== 'pescatarian')
+          }
         }
-      } else {
-        return {
-          ...prev,
-          dietary_restrictions: prev.dietary_restrictions.filter(r => r !== restriction)
-        }
+      }
+      
+      return {
+        ...prev,
+        dietary_restrictions: newRestrictions
       }
     })
   }
 
+  const isDietaryRestrictionDisabled = (restriction: string) => {
+    if (formData.dietary_restrictions.includes('carnivore')) {
+      return restriction !== 'carnivore'
+    }
+    if (formData.dietary_restrictions.includes('vegan')) {
+      return restriction === 'carnivore' || restriction === 'pescatarian'
+    }
+    if (formData.dietary_restrictions.includes('pescatarian')) {
+      return restriction === 'carnivore' || restriction === 'vegan'
+    }
+    return false
+  }
+
   return (
-    <Box maxW="800px" mx="auto" p={8}>
-      <Heading mb={6}>Create Your Meal Plan</Heading>
+    <Box maxW="800px" mx="auto" p={{ base: 4, md: 8 }}>
+      <Heading mb={6} textAlign={{ base: "center", md: "left" }}>Create Your Meal Plan</Heading>
       <form onSubmit={handleSubmit}>
         <VStack spacing={6} align="stretch">
-          <FormControl>
+          <FormControl isRequired>
             <FormLabel>Age</FormLabel>
             <NumberInput
-              min={18}
-              max={100}
+              min={1}
+              max={120}
               value={formData.age}
               onChange={(valueString) => {
                 const value = parseInt(valueString)
                 if (!isNaN(value)) {
-                  setFormData(prev => ({ ...prev, age: value }))
+                  setFormData({ ...formData, age: value })
                 }
               }}>
               <NumberInputField />
@@ -172,19 +169,20 @@ export default function MealPlanner(): JSX.Element {
               onChange={(e) => setFormData({ ...formData, gender: e.target.value })}>
               <option value="male">Male</option>
               <option value="female">Female</option>
+              <option value="other">Other</option>
             </Select>
           </FormControl>
 
-          <FormControl>
+          <FormControl isRequired>
             <FormLabel>Weight (lbs)</FormLabel>
             <NumberInput
-              min={80}
-              max={400}
+              min={1}
+              max={500}
               value={formData.weight}
               onChange={(valueString) => {
                 const value = parseInt(valueString)
                 if (!isNaN(value)) {
-                  setFormData(prev => ({ ...prev, weight: value }))
+                  setFormData({ ...formData, weight: value })
                 }
               }}>
               <NumberInputField />
@@ -195,16 +193,16 @@ export default function MealPlanner(): JSX.Element {
             </NumberInput>
           </FormControl>
 
-          <FormControl>
+          <FormControl isRequired>
             <FormLabel>Height (inches)</FormLabel>
             <NumberInput
-              min={48}
-              max={96}
+              min={1}
+              max={120}
               value={formData.height}
               onChange={(valueString) => {
                 const value = parseInt(valueString)
                 if (!isNaN(value)) {
-                  setFormData(prev => ({ ...prev, height: value }))
+                  setFormData({ ...formData, height: value })
                 }
               }}>
               <NumberInputField />
@@ -213,9 +211,6 @@ export default function MealPlanner(): JSX.Element {
                 <NumberDecrementStepper />
               </NumberInputStepper>
             </NumberInput>
-            <Text fontSize="sm" color="gray.600" mt={1}>
-              Example: 5'7" = 67 inches
-            </Text>
           </FormControl>
 
           <FormControl isRequired>
@@ -225,64 +220,77 @@ export default function MealPlanner(): JSX.Element {
               value={formData.activity_level}
               onChange={(e) => setFormData({ ...formData, activity_level: e.target.value })}>
               <option value="sedentary">Sedentary (little or no exercise)</option>
-              <option value="lightly_active">Lightly Active (1-3 days/week)</option>
-              <option value="moderately_active">Moderately Active (3-5 days/week)</option>
-              <option value="very_active">Very Active (6-7 days/week)</option>
-              <option value="extra_active">Extra Active (very active + physical job)</option>
+              <option value="light">Lightly active (light exercise 1-3 days/week)</option>
+              <option value="moderate">Moderately active (moderate exercise 3-5 days/week)</option>
+              <option value="very">Very active (hard exercise 6-7 days/week)</option>
+              <option value="extra">Extra active (very hard exercise & physical job)</option>
             </Select>
           </FormControl>
 
           <FormControl isRequired>
             <FormLabel>Goal</FormLabel>
             <Select
-              placeholder="Select goal"
+              placeholder="Select your goal"
               value={formData.goal}
               onChange={(e) => setFormData({ ...formData, goal: e.target.value })}>
-              <option value="weight_loss">Weight Loss</option>
-              <option value="weight_gain">Weight Gain</option>
-              <option value="maintenance">Maintenance</option>
+              <option value="lose">Lose Weight</option>
+              <option value="maintain">Maintain Weight</option>
+              <option value="gain">Gain Weight</option>
             </Select>
           </FormControl>
 
           <FormControl>
             <FormLabel>Dietary Restrictions</FormLabel>
             <Stack spacing={2}>
-              <Checkbox 
-                onChange={(e) => handleDietaryRestrictionChange('vegetarian', e.target.checked)}
-                isChecked={formData.dietary_restrictions.includes('vegetarian')}
-              >
-                Vegetarian
-              </Checkbox>
-              <Checkbox 
-                onChange={(e) => handleDietaryRestrictionChange('vegan', e.target.checked)}
+              <Checkbox
                 isChecked={formData.dietary_restrictions.includes('vegan')}
+                onChange={(e) => handleDietaryRestrictionChange('vegan', e.target.checked)}
+                isDisabled={isDietaryRestrictionDisabled('vegan')}
               >
                 Vegan
               </Checkbox>
-              <Checkbox 
-                onChange={(e) => handleDietaryRestrictionChange('gluten_free', e.target.checked)}
-                isChecked={formData.dietary_restrictions.includes('gluten_free')}
+              <Checkbox
+                isChecked={formData.dietary_restrictions.includes('vegetarian')}
+                onChange={(e) => handleDietaryRestrictionChange('vegetarian', e.target.checked)}
+                isDisabled={isDietaryRestrictionDisabled('vegetarian')}
               >
-                Gluten Free
+                Vegetarian
               </Checkbox>
-              <Checkbox 
-                onChange={(e) => handleDietaryRestrictionChange('dairy_free', e.target.checked)}
-                isChecked={formData.dietary_restrictions.includes('dairy_free')}
+              <Checkbox
+                isChecked={formData.dietary_restrictions.includes('pescatarian')}
+                onChange={(e) => handleDietaryRestrictionChange('pescatarian', e.target.checked)}
+                isDisabled={isDietaryRestrictionDisabled('pescatarian')}
               >
-                Dairy Free
+                Pescatarian
               </Checkbox>
-              <Checkbox 
-                onChange={(e) => handleDietaryRestrictionChange('nut_free', e.target.checked)}
-                isChecked={formData.dietary_restrictions.includes('nut_free')}
+              <Checkbox
+                isChecked={formData.dietary_restrictions.includes('carnivore')}
+                onChange={(e) => handleDietaryRestrictionChange('carnivore', e.target.checked)}
+                isDisabled={isDietaryRestrictionDisabled('carnivore')}
               >
-                Nut Free
+                Carnivore
+              </Checkbox>
+              <Checkbox
+                isChecked={formData.dietary_restrictions.includes('gluten-free')}
+                onChange={(e) => handleDietaryRestrictionChange('gluten-free', e.target.checked)}
+                isDisabled={isDietaryRestrictionDisabled('gluten-free')}
+              >
+                Gluten-Free
+              </Checkbox>
+              <Checkbox
+                isChecked={formData.dietary_restrictions.includes('dairy-free')}
+                onChange={(e) => handleDietaryRestrictionChange('dairy-free', e.target.checked)}
+                isDisabled={isDietaryRestrictionDisabled('dairy-free')}
+              >
+                Dairy-Free
               </Checkbox>
             </Stack>
           </FormControl>
 
           <Button
-            colorScheme="green"
             type="submit"
+            colorScheme="green"
+            size="lg"
             isLoading={loading}
             loadingText="Generating">
             Generate Meal Plan
@@ -290,54 +298,23 @@ export default function MealPlanner(): JSX.Element {
         </VStack>
       </form>
 
-      {calculations && (
-        <Box mt={8} p={4} borderWidth={1} borderRadius="lg" bg={calculationsBg}>
-          <Heading size="sm" mb={2}>Calculations</Heading>
-          <Text color={calculationsTextColor}>BMR: {Math.round(calculations.bmr)} calories/day</Text>
-          <Text color={calculationsTextColor}>TDEE: {Math.round(calculations.tdee)} calories/day</Text>
-          <Text color={calculationsTextColor}>Target: {Math.round(calculations.target_calories)} calories/day</Text>
-        </Box>
-      )}
-
-      {mealPlan && (
-        <Box mt={8} p={6} borderWidth={1} borderRadius="lg" bg={mealPlanBg}>
-          <Heading size="md" mb={4}>
-            Your Personalized Meal Plan
-          </Heading>
-          <Box 
-            className="workout-plan" 
-            p={4} 
-            color={mealPlanTextColor}
-            sx={{
-              '& h2': {
-                color: h2Color,
-                fontSize: 'xl',
-                fontWeight: 'bold',
-                mt: 4,
-                mb: 2
-              },
-              '& h3': {
-                color: h3Color,
-                fontSize: 'lg',
-                fontWeight: 'semibold',
-                mt: 3,
-                mb: 2
-              },
-              '& ul': {
-                listStyle: 'disc',
-                pl: 4,
-                mb: 3
-              },
-              '& li': {
-                mb: 2
-              },
-              '& strong': {
-                color: strongColor
-              }
-            }}
-          >
-            <ReactMarkdown>{mealPlan}</ReactMarkdown>
-          </Box>
+      {mealPlan && calculations && (
+        <Box mt={8} p={6} borderWidth={1} borderRadius="lg" bg={useColorModeValue('white', 'gray.700')}>
+          <VStack spacing={4} align="stretch">
+            <Box>
+              <Heading size="md" mb={2}>Daily Caloric Needs</Heading>
+              <Text>BMR (Basal Metabolic Rate): {calculations.bmr} calories</Text>
+              <Text>TDEE (Total Daily Energy Expenditure): {calculations.tdee} calories</Text>
+              <Text>Target Daily Calories: {calculations.target_calories} calories</Text>
+            </Box>
+            
+            <Box>
+              <Heading size="md" mb={4}>Your Personalized Meal Plan</Heading>
+              <Box className="meal-plan">
+                <ReactMarkdown>{mealPlan}</ReactMarkdown>
+              </Box>
+            </Box>
+          </VStack>
         </Box>
       )}
     </Box>
