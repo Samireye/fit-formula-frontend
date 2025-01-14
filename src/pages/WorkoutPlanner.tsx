@@ -81,7 +81,7 @@ export default function WorkoutPlanner(): JSX.Element {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     
-    // Validate equipment selection
+    // Validate equipment selection - only require at least one piece of equipment
     if (formData.available_equipment.length === 0) {
       toast({
         title: 'Error',
