@@ -18,10 +18,16 @@ import {
   Stack,
   Text,
   useColorModeValue,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
 } from '@chakra-ui/react'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
 import config from '../config'
+import { useAuth } from '../contexts/AuthContext'
+import { useNavigate } from 'react-router-dom'
 
 interface FormData {
   age: number
@@ -42,29 +48,52 @@ interface MealPlanResponse {
   }
 }
 
+const savePlanToHistory = async (data: any) => {
+  try {
+    const response = await axios.post(`${config.apiUrl}/api/history`, data)
+    console.log('Plan saved to history:', response.data)
+  } catch (error) {
+    console.error('Error saving to history:', error)
+  }
+}
+
 export default function MealPlanner() {
   const toast = useToast()
   const [loading, setLoading] = useState(false)
   const [mealPlan, setMealPlan] = useState('')
   const [calculations, setCalculations] = useState<MealPlanResponse['calculations'] | null>(null)
-
-  console.log('API URL:', config.apiUrl)
-
   const [formData, setFormData] = useState<FormData>({
     age: 30,
     gender: '',
-    weight: 150,
-    height: 70,
+    weight: 70,
+    height: 170,
     activity_level: '',
     goal: '',
-    dietary_restrictions: [],
+    dietary_restrictions: []
   })
+  const [hasUsedFreePlan, setHasUsedFreePlan] = useState(false)
+  const { currentUser } = useAuth()
+  const navigate = useNavigate()
+
+  console.log('API URL:', config.apiUrl)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
+      if (!currentUser && hasUsedFreePlan) {
+        toast({
+          title: 'Free Trial Used',
+          description: 'Please sign up to generate more meal plans!',
+          status: 'info',
+          duration: 5000,
+          isClosable: true,
+        })
+        navigate('/signup')
+        return
+      }
+
       const response = await axios.post<MealPlanResponse>(
         `${config.apiUrl}/api/meal-plan`,
         formData
@@ -72,9 +101,29 @@ export default function MealPlanner() {
 
       setMealPlan(response.data.meal_plan)
       setCalculations(response.data.calculations)
+      
+      if (!currentUser) {
+        setHasUsedFreePlan(true)
+      } else {
+        // Save to history if user is logged in
+        try {
+          await savePlanToHistory({
+            userId: currentUser.uid,
+            type: 'meal',
+            content: response.data.meal_plan,
+            metadata: {
+              calculations: response.data.calculations,
+              formData
+            }
+          })
+        } catch (error) {
+          console.error('Error saving to history:', error)
+        }
+      }
+
       toast({
-        title: 'Success!',
-        description: 'Your meal plan has been generated.',
+        title: 'Meal Plan Generated',
+        description: 'Your personalized meal plan has been generated.',
         status: 'success',
         duration: 5000,
         isClosable: true,
@@ -141,6 +190,17 @@ export default function MealPlanner() {
 
   return (
     <Box maxW="800px" mx="auto" p={{ base: 4, md: 8 }}>
+      {!currentUser && hasUsedFreePlan && (
+        <Alert status="info" mb={4}>
+          <AlertIcon />
+          <Box>
+            <AlertTitle>Free Trial Plan Used</AlertTitle>
+            <AlertDescription>
+              Sign up to generate unlimited meal plans and save your history!
+            </AlertDescription>
+          </Box>
+        </Alert>
+      )}
       <Heading mb={6} textAlign={{ base: "center", md: "left" }}>Create Your Meal Plan</Heading>
       <form onSubmit={handleSubmit}>
         <VStack spacing={6} align="stretch">

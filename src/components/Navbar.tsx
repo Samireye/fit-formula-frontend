@@ -1,133 +1,110 @@
 import {
   Box,
-  Button,
   Flex,
-  HStack,
-  IconButton,
-  Link,
-  useColorMode,
+  Button,
   useColorModeValue,
-  useDisclosure,
-  VStack,
-  CloseButton,
-  useBreakpointValue
+  Stack,
+  useColorMode,
+  HStack,
+  Text,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  MenuDivider,
+  Avatar,
 } from '@chakra-ui/react'
-import { Link as RouterLink } from 'react-router-dom'
-import { HamburgerIcon, MoonIcon, SunIcon } from '@chakra-ui/icons'
+import { MoonIcon, SunIcon, ChevronDownIcon } from '@chakra-ui/icons'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Navbar() {
   const { colorMode, toggleColorMode } = useColorMode()
-  const { isOpen, onToggle, onClose } = useDisclosure()
-  const isMobile = useBreakpointValue({ base: true, md: false })
+  const { currentUser, logout } = useAuth()
+  const navigate = useNavigate()
 
-  const bg = useColorModeValue('white', 'gray.800')
-  const borderColor = useColorModeValue('gray.200', 'gray.700')
+  const handleLogout = async () => {
+    try {
+      await logout()
+      navigate('/login')
+    } catch (error) {
+      console.error('Failed to log out', error)
+    }
+  }
 
   return (
-    <Box 
-      position="sticky" 
-      top={0} 
-      zIndex={1000} 
-      bg={bg} 
-      borderBottom="1px" 
-      borderColor={borderColor}
-      px={{ base: 4, md: 8 }}
-      py={4}
-    >
-      <Flex alignItems="center" justifyContent="space-between">
-        <Link
-          as={RouterLink}
-          to="/"
-          fontSize="xl"
-          fontWeight="bold"
-          _hover={{ textDecoration: 'none' }}
-        >
-          FitFormula.AI
-        </Link>
+    <Box bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
+      <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
+        <RouterLink to="/">
+          <Text fontSize="xl" fontWeight="bold">
+            FitFormula.AI
+          </Text>
+        </RouterLink>
 
-        {/* Mobile Menu Button */}
-        {isMobile && (
-          <Flex alignItems="center">
-            <IconButton
-              onClick={toggleColorMode}
-              icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
-              variant="ghost"
-              aria-label="Toggle color mode"
-              mr={2}
-            />
-            <IconButton
-              onClick={onToggle}
-              icon={<HamburgerIcon />}
-              variant="ghost"
-              aria-label="Toggle navigation"
-            />
-          </Flex>
-        )}
-
-        {/* Desktop Navigation */}
-        {!isMobile && (
-          <HStack spacing={4}>
-            <IconButton
-              onClick={toggleColorMode}
-              icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
-              variant="ghost"
-              aria-label="Toggle color mode"
-            />
-            <Button
-              as={RouterLink}
-              to="/workout-planner"
-              variant="ghost"
-              colorScheme="blue"
-            >
-              Workout Planner
-            </Button>
-            <Button
-              as={RouterLink}
-              to="/meal-planner"
-              colorScheme="green"
-            >
-              Meal Planner
-            </Button>
+        <Flex alignItems={'center'}>
+          <HStack spacing={8} alignItems={'center'}>
+            <HStack
+              as={'nav'}
+              spacing={4}
+              display={{ base: 'none', md: 'flex' }}>
+              <RouterLink to="/workout-planner">
+                <Button variant="ghost">Workout Planner</Button>
+              </RouterLink>
+              <RouterLink to="/meal-planner">
+                <Button variant="ghost">Meal Planner</Button>
+              </RouterLink>
+            </HStack>
           </HStack>
-        )}
-      </Flex>
 
-      {/* Mobile Menu */}
-      {isMobile && isOpen && (
-        <Box
-          position="fixed"
-          top={0}
-          right={0}
-          bottom={0}
-          width="full"
-          bg={bg}
-          zIndex={20}
-          p={4}
-        >
-          <Flex justify="flex-end" mb={8}>
-            <CloseButton onClick={onClose} />
-          </Flex>
-          <VStack spacing={4} alignItems="stretch">
-            <Button
-              as={RouterLink}
-              to="/workout-planner"
-              variant="ghost"
-              colorScheme="blue"
-              onClick={onClose}
-            >
-              Workout Planner
+          <Stack direction={'row'} spacing={7}>
+            <Button onClick={toggleColorMode}>
+              {colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
             </Button>
-            <Button
-              as={RouterLink}
-              to="/meal-planner"
-              colorScheme="green"
-              onClick={onClose}
-            >
-              Meal Planner
-            </Button>
-          </VStack>
-        </Box>
-      )}
+
+            {currentUser ? (
+              <Menu>
+                <MenuButton
+                  as={Button}
+                  rounded={'full'}
+                  variant={'link'}
+                  cursor={'pointer'}
+                  minW={0}>
+                  <Avatar
+                    size={'sm'}
+                    src={currentUser.photoURL || undefined}
+                    name={currentUser.email || undefined}
+                  />
+                </MenuButton>
+                <MenuList>
+                  <MenuItem as={RouterLink} to="/profile">Profile</MenuItem>
+                  <MenuItem>Settings</MenuItem>
+                  <MenuDivider />
+                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                </MenuList>
+              </Menu>
+            ) : (
+              <Stack
+                flex={{ base: 1, md: 0 }}
+                justify={'flex-end'}
+                direction={'row'}
+                spacing={6}>
+                <RouterLink to="/login">
+                  <Button variant={'ghost'}>
+                    Sign In
+                  </Button>
+                </RouterLink>
+                <RouterLink to="/signup">
+                  <Button
+                    display={{ base: 'none', md: 'inline-flex' }}
+                    colorScheme={'blue'}>
+                    Sign Up
+                  </Button>
+                </RouterLink>
+              </Stack>
+            )}
+          </Stack>
+        </Flex>
+      </Flex>
     </Box>
   )
 }
