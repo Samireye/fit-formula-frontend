@@ -1,0 +1,60 @@
+.markdown-body {
+  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  padding: 1rem;
+}
+
+.markdown-body h1 {
+  font-size: 2em;
+  margin-bottom: 1rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid #eaecef;
+}
+
+.markdown-body h2 {
+  font-size: 1.5em;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid #eaecef;
+}
+
+.markdown-body h3 {
+  font-size: 1.25em;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #0366d6;
+}
+
+.markdown-body ul {
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  padding-left: 2rem;
+}
+
+.markdown-body li {
+  margin: 0.5rem 0;
+}
+
+.markdown-body li > ul {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.markdown-body p {
+  margin: 1rem 0;
+}
+
+/* Dark mode support */
+[data-theme="dark"] .markdown-body {
+  color: #c9d1d9;
+}
+
+[data-theme="dark"] .markdown-body h1,
+[data-theme="dark"] .markdown-body h2 {
+  border-bottom-color: #30363d;
+}
+
+[data-theme="dark"] .markdown-body h3 {
+  color: #58a6ff;
+}

@@ -19,13 +19,20 @@ import {
   SimpleGrid,
   Image,
   Text,
-  useColorModeValue
+  useColorModeValue,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Input,
 } from '@chakra-ui/react'
 
 import axios, { AxiosError } from 'axios'
 import ReactMarkdown from 'react-markdown'
 import '../styles/workout-plan.css'
-
+import { useAuth } from '../contexts/AuthContext'
+import { useNavigate } from 'react-router-dom'
+import { savePlanToHistory } from '../services/planHistory'
 
 interface FormData {
   fitness_level: string
@@ -35,7 +42,6 @@ interface FormData {
   sessions_per_week: number
   medical_conditions: string
 }
-
 
 interface WorkoutPlanResponse {
   workout_plan: string
@@ -53,13 +59,25 @@ interface WorkoutPlanResponse {
   }[]
 }
 
+interface SavedPlan {
+  userId: string
+  type: string
+  content: string
+  metadata: {
+    exercises: WorkoutPlanResponse['exercises']
+    formData: FormData
+  }
+}
 
 export default function WorkoutPlanner(): JSX.Element {
   const toast = useToast()
   const [loading, setLoading] = useState<boolean>(false)
   const [workoutPlan, setWorkoutPlan] = useState<string>('')
   const [exercises, setExercises] = useState<WorkoutPlanResponse['exercises']>([])
-  
+  const [hasUsedFreePlan, setHasUsedFreePlan] = useState(false)
+  const { currentUser } = useAuth()
+  const navigate = useNavigate()
+
   // Move color mode values to top level
   const bgColor = useColorModeValue('white', 'gray.700')
   const textColor = useColorModeValue('gray.800', 'gray.100')
@@ -80,7 +98,7 @@ export default function WorkoutPlanner(): JSX.Element {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
-    
+
     // Validate equipment selection - only require at least one piece of equipment
     if (formData.available_equipment.length === 0) {
       toast({
@@ -108,13 +126,60 @@ export default function WorkoutPlanner(): JSX.Element {
     setLoading(true)
 
     try {
+      if (!currentUser && hasUsedFreePlan) {
+        toast({
+          title: 'Free Trial Used',
+          description: 'Please sign up to generate more workout plans!',
+          status: 'info',
+          duration: 5000,
+          isClosable: true,
+        })
+        navigate('/signup')
+        return
+      }
+
       const response = await axios.post<WorkoutPlanResponse>(
         `${import.meta.env.VITE_API_URL}/workout`,
         formData
       )
       
+      console.log('Workout response:', response.data)
+
       setWorkoutPlan(response.data.workout_plan)
       setExercises(response.data.exercises || [])
+
+      if (!currentUser) {
+        setHasUsedFreePlan(true)
+      } else {
+        // Save to history if user is logged in
+        try {
+          const historyData = {
+            userId: currentUser.uid,
+            type: 'workout',
+            content: response.data.workout_plan,
+            metadata: {
+              formData
+            }
+          }
+          
+          // Only add exercises to metadata if they exist
+          if (response.data.exercises) {
+            historyData.metadata.exercises = response.data.exercises
+          }
+          
+          await savePlanToHistory(historyData)
+        } catch (error) {
+          console.error('Error saving to history:', error)
+          toast({
+            title: 'Error',
+            description: 'Failed to save workout plan to history.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          })
+        }
+      }
+
       toast({
         title: 'Success!',
         description: 'Your workout plan has been generated.',
@@ -169,6 +234,17 @@ export default function WorkoutPlanner(): JSX.Element {
       mx="auto" 
       p={{ base: 4, md: 8 }}
     >
+      {!currentUser && hasUsedFreePlan && (
+        <Alert status="info" mb={4}>
+          <AlertIcon />
+          <Box>
+            <AlertTitle>Free Trial Plan Used</AlertTitle>
+            <AlertDescription>
+              Sign up to generate unlimited workout plans and save your history!
+            </AlertDescription>
+          </Box>
+        </Alert>
+      )}
       <Heading mb={6} textAlign={{ base: "center", md: "left" }}>Create Your Workout Plan</Heading>
       <form onSubmit={handleSubmit}>
         <VStack spacing={6} align="stretch">
@@ -185,7 +261,6 @@ export default function WorkoutPlanner(): JSX.Element {
               <option value="advanced">Advanced</option>
             </Select>
           </FormControl>
-
 
           <FormControl>
             <FormLabel>Available Equipment <span style={{ color: 'red' }}>*</span></FormLabel>
@@ -222,7 +297,6 @@ export default function WorkoutPlanner(): JSX.Element {
               </Checkbox>
             </Stack>
           </FormControl>
-
 
           <FormControl>
             <FormLabel>Goals <span style={{ color: 'red' }}>*</span></FormLabel>
